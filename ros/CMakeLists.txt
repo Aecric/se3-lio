@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16...3.26)
-project(se3_lio VERSION 0.1.0 LANGUAGES CXX)
+project(se3_lio VERSION 0.1.0 LANGUAGES C CXX)  # C: rosidl-generated srv typesupport
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

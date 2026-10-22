@@ -66,10 +66,21 @@ public:
     void initMap();
 
     /**
+     * @brief Build the map once from a prior point cloud (fixed-map
+     * localization). The map is never updated or slid afterwards.
+     *
+     * @param _points world-frame points
+     * @param _point_cov isotropic point covariance [m^2]
+     */
+    void initFixedMap(const std::vector<Eigen::Vector3d> &_points, double _point_cov);
+
+    /**
      * @brief Update the map
      *
      */
     void updateMap();
+
+    bool isFixed() const { return is_fixed_; }
 
     /**
      * @brief Check whether the map is initialized
@@ -115,6 +126,7 @@ private:
     bool has_slid_ = false;
 
     bool is_initialized_;
+    bool is_fixed_ = false;
 };
 
 }  // namespace se3_lio

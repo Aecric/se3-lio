@@ -111,6 +111,19 @@ Config lives in [ros/ros2/config/params.yaml](ros/ros2/config/params.yaml)
 `rviz:=true` opens RViz (registered cloud + trajectory). RViz needs a display:
 launch via `run_docker.sh` and run `xhost +local:root` on the host.
 
+### Fixed-map localization
+
+`run_loclite_online` tracks an existing `global.pcd` without updating it, with the
+command line, `/hikari_loc/*` outputs, TF, `/initialpose` and cold-start
+relocalization (origin prior → KISS-Matcher → NDT → GenZ-ICP → FC) of Super-LIO's
+pure-localization mode:
+
+```bash
+ros2 launch se3_lio loclite.launch.py map_path:=/path/to/map_dir
+```
+
+See [ros/ros2/localization.md](ros/ros2/localization.md) (中文).
+
 </details>
 
 <details>

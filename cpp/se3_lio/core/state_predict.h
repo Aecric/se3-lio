@@ -58,6 +58,13 @@ public:
     bool isValid();
 
     /**
+     * @brief Check if the initial state (gravity, gyro bias) has been estimated
+     *
+     * @return bool
+     */
+    bool isInitialized() const { return is_initialized_; }
+
+    /**
      * @brief Calculate the initial gravity from the mean values of the
      * accelerometer
      *

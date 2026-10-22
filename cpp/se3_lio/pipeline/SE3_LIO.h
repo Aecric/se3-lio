@@ -52,10 +52,32 @@ public:
 
     State getState() const { return state_; }
 
+    /// False until the IMU is initialized and a scan has been registered.
+    bool isValid() const { return state_predictor_valid_; }
+
+    // ---- Fixed-map localization (run_loclite_online) ----
+    /// Build the voxel map once from world-frame points; it is never updated.
+    void setFixedMap(const std::vector<Eigen::Vector3d> &_points, double _point_cov);
+
+    /// Restart the filter (IMU initialization included). A fixed map is kept,
+    /// any other map is discarded.
+    void resetOdometry();
+
+    /// Start the odometry at T_world_imu instead of the identity. Takes effect
+    /// once the IMU is initialized; gravity is rotated into the world frame.
+    void setInitialPose(const Eigen::Matrix4d &_T_world_imu);
+
     size_t getMapSize() const { return map_manager_ ? map_manager_->mapSize() : 0; }
 
 private:
+    void setupFilter();
+
     SE3_LIO_Config config_;
+
+    bool state_predictor_valid_ = false;
+    bool has_initial_pose_ = false;
+    bool initial_pose_applied_ = false;
+    Eigen::Matrix4d initial_pose_ = Eigen::Matrix4d::Identity();
 
     MeasurementPtr meas_;
     State state_;
