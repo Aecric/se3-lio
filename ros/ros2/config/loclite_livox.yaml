@@ -1,0 +1,114 @@
+# Fixed-map pure localization (run_loclite_online), Livox Mid-360.
+# Same localization interface as Super-LIO's config/loclite_livox.yaml; the
+# odometry block uses the se3_lio node parameters (params.yaml).
+/**:
+  ros__parameters:
+    imu_topic: "/livox/imu"
+    lidar_topic: "/livox/lidar"
+
+    sensors:
+      imu:
+        acc_cov: 0.1
+        gyr_cov: 0.1
+        b_acc_cov: 0.0001
+        b_gyr_cov: 0.0001
+
+      lidar:
+        min_range: 0.25
+        range_cov: 0.02
+        angle_cov: 0.15
+        point_filter_num: 1
+
+      # p_imu = R * p_lidar + t. [quat : w, x, y, z]. Livox Mid-360 built-in IMU.
+      t_exts: [-0.011, -0.02329, 0.04412]
+      q_exts: [1.0, 0.0, 0.0, 0.0]
+
+    downsample:
+      resolution: 0.2
+
+    max_iter: 4
+
+    verbose: false
+
+    # Voxel map built once from the fixed map (never updated, never slid).
+    # A root voxel needs > layer_size[0] map points to fit a plane: with the
+    # 0.1 m fixed_map.voxel_size below, 0.25 m roots hold only ~6 wall points,
+    # so use 0.5 m roots (max_layer 2 subdivides down to 0.125 m).
+    voxel_map:
+      resolution: 0.5
+      max_layer: 2
+      layer_size: [5, 5, 5, 5, 5]
+      max_point_size: 1000
+      plane_threshold: 0.01
+
+    # Fixed map -> voxel map: downsample [m] (<= 0 keeps every point) and the
+    # isotropic covariance [m^2] given to each map point.
+    fixed_map.voxel_size: 0.1
+    fixed_map.point_cov: 0.0004
+
+    # Fixed-map localization interface. --map_path overrides system.map_path.
+    system.map_path: ""
+    fixed_map.global_pcd: ""
+    common.map_frame_id: "map"
+    system.lidar_frame_id: "livox_frame"
+    system.base_frame_id: "livox_frame"
+    system.level_frame_id: "level_frame"
+    # T_base_lidar; translation in metres, roll/pitch/yaw in radians.
+    system.base_to_lidar_x: 0.0
+    system.base_to_lidar_y: 0.0
+    system.base_to_lidar_z: 0.0
+    system.base_to_lidar_roll: 0.0
+    system.base_to_lidar_pitch: 0.0
+    system.base_to_lidar_yaw: 0.0
+    runtime.publish_tf: true
+    runtime.publish_odom: true
+    runtime.publish_path: true
+    runtime.imu_timeout_sec: 1.0
+    runtime.lidar_timeout_sec: 2.0
+
+    # Initialization against the fixed map (keep the device still while it runs).
+    #   /initialpose: guess -> NDT -> GenZ-ICP -> FC
+    #   no initial pose (startup / after LOST): cold start
+    #     1. map origin with yaw hypotheses -> NDT -> GenZ-ICP -> FC
+    #     2. if none passes: KISS-Matcher candidates -> NDT -> GenZ-ICP -> FC
+    # An /initialpose received at any time takes over from the cold start.
+    reloc.cold_start.enable: true
+    reloc.cold_start.max_attempts: 0          # 0 = keep retrying until /initialpose
+    reloc.origin_prior.enable: true
+    reloc.origin_prior.x: 0.0                 # IMU position where the device usually starts
+    reloc.origin_prior.y: 0.0
+    reloc.origin_prior.z: 0.0
+    reloc.origin_prior.yaw_step_deg: 45.0
+    reloc.origin_prior.max_delta_trans: 3.0
+    reloc.kiss.voxel_sizes: [0.25, 0.3, 0.4]  # one KISS run (= one candidate) per size
+    reloc.kiss.use_quatro: true               # yaw + translation only
+    reloc.kiss.target_pre_voxel: 0.2
+    reloc.kiss.max_target_points: 800000
+    reloc.kiss.min_rotation_inliers: 0        # FC is the real gate
+    reloc.kiss.min_final_inliers: 0
+    reloc.kiss.min_agreeing_candidates: 2     # passing KISS candidates that must agree
+    reloc.kiss.max_tilt_deg: 10.0
+    reloc.genz.map_voxel: 0.3
+    reloc.genz.max_points_per_voxel: 1
+    reloc.genz.planarity_threshold: 0.1
+    reloc.genz.source_voxel: 0.2
+    reloc.genz.max_iterations: 100
+    reloc.genz.convergence: 0.0001
+    reloc.genz.coarse_max_corr: 1.0
+    reloc.genz.fine_max_corr: 0.3
+    # FC false-positive barrier: all checks must pass.
+    reloc.fc.map_voxel: 0.1
+    reloc.fc.inlier_dist: 0.3
+    reloc.fc.min_inlier_ratio: 0.85
+    reloc.fc.wall_band_min: -0.5              # wall band relative to the sensor height
+    reloc.fc.wall_band_max: 1.0
+    reloc.fc.min_wall_inlier_ratio: 0.8
+    reloc.fc.min_coverage: 0.5                # of observed 45-degree sectors
+    reloc.fc.min_sector_points: 10
+    reloc.fc.max_rmse: 0.08
+    reloc.fc.max_delta_trans_manual: 5.0
+    reloc.fc.max_delta_rot_deg_manual: 45.0
+    reloc.fc.max_delta_trans_kiss: 3.0
+    reloc.fc.max_delta_rot_deg_kiss: 30.0
+    reloc.fc.ambiguity_trans: 1.0             # passing candidates further apart -> reject all
+    reloc.fc.ambiguity_rot_deg: 10.0

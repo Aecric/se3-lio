@@ -64,6 +64,21 @@ void ManageMap::initMap() {
     return;
 }
 
+void ManageMap::initFixedMap(const std::vector<Eigen::Vector3d> &_points, double _point_cov) {
+    std::vector<pointWithCov> pv_list(_points.size());
+    const Eigen::Matrix3d cov = Eigen::Matrix3d::Identity() * _point_cov;
+    for (size_t i = 0; i < _points.size(); i++) {
+        pv_list[i].point = _points[i];
+        pv_list[i].cov = cov;
+    }
+
+    buildVoxelMap(pv_list, config_.resolution, config_.max_layer, config_.layer_size,
+                  config_.max_point_size, config_.max_point_size, config_.plane_thres, voxel_map_);
+
+    is_initialized_ = true;
+    is_fixed_ = true;
+}
+
 std::vector<Plane> ManageMap::getPlanes() {
     std::vector<Plane> planes;
     for (const auto &voxel : voxel_map_) {
@@ -80,6 +95,8 @@ std::vector<Plane> ManageMap::getPlanes() {
 }
 
 void ManageMap::updateMap() {
+    if (is_fixed_) return;
+
     curr_pose_ = curr_state_.pose;
     curr_pose_cov_ = curr_state_.pose_cov();
 

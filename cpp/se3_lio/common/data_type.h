@@ -92,6 +92,8 @@ struct State {
 
     State() {
         stamp = 0.0;
+        num_inliers = 0;
+        residual = 0.0;
         pose = Eigen::Matrix4d::Identity();
         vel = Eigen::Vector3d::Zero();
         bg = Eigen::Vector3d::Zero();
